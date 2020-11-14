@@ -142,7 +142,10 @@ def any2device(value, device: Device):
         return {
             k: any2device(value[k], device) for k in value.dtype.fields.keys()
         }
-    elif isinstance(value, np.ndarray) and value.dtype.kind not in {'O', 'M', 'U', 'S'}:
+    elif (
+        isinstance(value, np.ndarray)
+        and value.dtype.kind not in {'O', 'M', 'U', 'S'}
+    ):
         # Prevent converting object, string, time to tensor
         return torch.Tensor(value).to(device)
     return value
