@@ -104,10 +104,10 @@ class CMCScoreCallback(Callback):
         # bool mask
         query_mask = query_mask.type(TORCH_BOOL)
         gallery_mask = ~query_mask
-        query_embeddings = runner.output[self.embeddings_key][query_mask].cpu()
+        query_embeddings = runner.output[self.embeddings_key][query_mask].cpu().float()
         gallery_embeddings = runner.output[self.embeddings_key][
             gallery_mask
-        ].cpu()
+        ].cpu().float()
         query_labels = runner.input[self.labels_key][query_mask].cpu()
         gallery_labels = runner.input[self.labels_key][gallery_mask].cpu()
 
