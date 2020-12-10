@@ -370,6 +370,10 @@ class MetricAggregationCallback(Callback):
             self.aggregation_fn = (
                 lambda x: torch.mean(torch.stack(x)) * multiplier
             )
+        elif mode == "gmean":
+            self.aggregation_fn = (
+                lambda x: torch.exp(torch.mean(torch.log(torch.stack(x).clamp_min(1e-6)))) * multiplier
+            )
 
     def _preprocess(self, metrics: Any) -> List[float]:
         if self.metrics is not None:
