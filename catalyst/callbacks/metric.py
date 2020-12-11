@@ -326,7 +326,7 @@ class MetricAggregationCallback(Callback):
         if prefix is None or not isinstance(prefix, str):
             raise ValueError("prefix must be str")
 
-        if mode in ("sum", "mean"):
+        if mode in ("sum", "mean", "gmean"):
             if metrics is not None and not isinstance(metrics, list):
                 raise ValueError(
                     "For `sum` or `mean` mode the metrics must be "
