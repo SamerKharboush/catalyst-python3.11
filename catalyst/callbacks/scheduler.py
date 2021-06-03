@@ -86,10 +86,7 @@ class SchedulerCallback(ISchedulerCallback):
     """
 
     def __init__(
-        self,
-        scheduler_key: str = None,
-        mode: str = None,
-        reduced_metric: str = None,
+        self, scheduler_key: str = None, mode: str = None, reduced_metric: str = None,
     ):
         """
         Args:
@@ -118,11 +115,7 @@ class SchedulerCallback(ISchedulerCallback):
         else:
             scheduler.step()
 
-        if hasattr(scheduler, "get_last_lr"):
-            lr = scheduler.get_last_lr()[0]
-        else:
-            lr = scheduler.get_lr()[0]
-
+        lr = scheduler.optimizer.param_groups[0]["lr"]
         momentum = get_optimizer_momentum(scheduler.optimizer)
 
         return lr, momentum
@@ -138,9 +131,7 @@ class SchedulerCallback(ISchedulerCallback):
         if self.scheduler_key is not None:
             runner.batch_metrics[f"lr/{self.scheduler_key}"] = lr
             if momentum is not None:
-                runner.batch_metrics[
-                    f"momentum/{self.scheduler_key}"
-                ] = momentum
+                runner.batch_metrics[f"momentum/{self.scheduler_key}"] = momentum
         else:
             runner.batch_metrics["lr"] = lr
             if momentum is not None:
@@ -153,16 +144,12 @@ class SchedulerCallback(ISchedulerCallback):
             runner: current runner
         """
         reduced_metric = runner.valid_metrics[self.reduced_metric]
-        lr, momentum = self._scheduler_step(
-            scheduler=self._scheduler, reduced_metric=reduced_metric
-        )
+        lr, momentum = self._scheduler_step(scheduler=self._scheduler, reduced_metric=reduced_metric)
 
         if self.scheduler_key is not None:
             runner.epoch_metrics[f"lr/{self.scheduler_key}"] = lr
             if momentum is not None:
-                runner.epoch_metrics[
-                    f"momentum/{self.scheduler_key}"
-                ] = momentum
+                runner.epoch_metrics[f"momentum/{self.scheduler_key}"] = momentum
         else:
             runner.epoch_metrics["lr"] = lr
             if momentum is not None:
@@ -176,9 +163,7 @@ class SchedulerCallback(ISchedulerCallback):
         """
         self.reduced_metric = self.reduced_metric or runner.main_metric
 
-        scheduler = runner.get_attr(
-            key="scheduler", inner_key=self.scheduler_key
-        )
+        scheduler = runner.get_attr(key="scheduler", inner_key=self.scheduler_key)
         assert scheduler is not None
         self._scheduler = scheduler
 
@@ -188,10 +173,7 @@ class SchedulerCallback(ISchedulerCallback):
             else:
                 self.mode = "epoch"
 
-        if (
-            isinstance(scheduler, OneCycleLRWithWarmup)
-            and self.mode == "batch"
-        ):
+        if isinstance(scheduler, OneCycleLRWithWarmup) and self.mode == "batch":
             scheduler.reset()
         assert self.mode is not None
 
@@ -201,14 +183,8 @@ class SchedulerCallback(ISchedulerCallback):
         Args:
             runner: current runner
         """
-        if (
-            runner.is_train_loader
-            and isinstance(self._scheduler, OneCycleLRWithWarmup)
-            and self.mode == "batch"
-        ):
-            self._scheduler.recalculate(
-                loader_len=runner.loader_len, current_step=runner.epoch - 1
-            )
+        if runner.is_train_loader and isinstance(self._scheduler, OneCycleLRWithWarmup) and self.mode == "batch":
+            self._scheduler.recalculate(loader_len=runner.loader_len, current_step=runner.epoch - 1)
 
     def on_batch_end(self, runner: "IRunner") -> None:
         """Batch end hook.
@@ -300,9 +276,7 @@ class ILRUpdater(ABC, Callback):
         Args:
             runner: current runner
         """
-        optimizer = runner.get_attr(
-            key="optimizer", inner_key=self.optimizer_key
-        )
+        optimizer = runner.get_attr(key="optimizer", inner_key=self.optimizer_key)
         assert optimizer is not None
         self._optimizer = optimizer
         self.init_lr = optimizer.defaults["lr"]
@@ -341,11 +315,7 @@ class LRFinder(ILRUpdater):
     """
 
     def __init__(
-        self,
-        final_lr,
-        scale: str = "log",
-        num_steps: Optional[int] = None,
-        optimizer_key: str = None,
+        self, final_lr, scale: str = "log", num_steps: Optional[int] = None, optimizer_key: str = None,
     ):
         """
         Args:
