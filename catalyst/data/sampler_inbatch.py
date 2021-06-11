@@ -199,16 +199,12 @@ class HardTripletsSampler(InBatchTripletsSampler):
 
         dist_mat = torch.cdist(x1=features, x2=features, p=2)
 
-        ids_anchor, ids_pos, ids_neg = self._sample_from_distmat(
-            distmat=dist_mat, labels=labels
-        )
+        ids_anchor, ids_pos, ids_neg = self._sample_from_distmat(distmat=dist_mat, labels=labels)
 
         return ids_anchor, ids_pos, ids_neg
 
     @staticmethod
-    def _sample_from_distmat(
-        distmat: Tensor, labels: List[int]
-    ) -> TTripletsIds:
+    def _sample_from_distmat(distmat: Tensor, labels: List[int]) -> TTripletsIds:
         """
         This method samples the hardest triplets based on the given
         distances matrix. It chooses each sample in the batch as an
@@ -269,7 +265,7 @@ class HardClusterSampler(IInbatchTripletSampler):
         labels_counter = Counter(labels)
         k = labels_counter[labels[0]]
         if not all(n == k for n in labels_counter.values()):
-            raise ValueError("Expected equal number of samples for each class")
+            raise ValueError(f"Expected equal number of samples ({k}) for each class {labels_counter}")
         if len(labels_counter) <= 1:
             raise ValueError("Expected at least 2 classes in the batch")
         if k == 1:
@@ -298,9 +294,7 @@ class HardClusterSampler(IInbatchTripletSampler):
         return labels_mask.type(torch.bool)
 
     @staticmethod
-    def _count_intra_class_distances(
-        embeddings: Tensor, mean_vectors: Tensor
-    ) -> Tensor:
+    def _count_intra_class_distances(embeddings: Tensor, mean_vectors: Tensor) -> Tensor:
         """
         Count matrix of distances from mean vector of each class to it's
         samples embeddings.
@@ -393,9 +387,7 @@ class HardClusterSampler(IInbatchTripletSampler):
         # For each class mean vector get the closest mean vector
         d_inter = self._fill_diagonal(d_inter, float("inf"))
         neg_indices = d_inter.min(1).indices
-        positives = torch.stack(
-            [features[idx][pos_idx] for idx, pos_idx in enumerate(pos_indices)]
-        )
+        positives = torch.stack([features[idx][pos_idx] for idx, pos_idx in enumerate(pos_indices)])
 
         return mean_vectors, positives, mean_vectors[neg_indices]
 
