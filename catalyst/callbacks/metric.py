@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, List, TYPE_CHECKING, Union
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, Mapping
 import logging
 
 import numpy as np
@@ -51,7 +51,7 @@ class IMetricCallback(ABC, Callback):
         self._get_input = get_dictkey_auto_fn(self.input_key)
         self._get_output = get_dictkey_auto_fn(self.output_key)
 
-        kv_types = (dict, tuple, list, type(None))
+        kv_types = (Mapping, dict, tuple, list, type(None))
 
         is_value_input = (
             isinstance(self.input_key, str) and self.input_key != "__all__"
@@ -133,7 +133,7 @@ class IMetricCallback(ABC, Callback):
         Returns:
             Dict: processed scaled metric(s) with names
         """
-        if isinstance(metric, dict):
+        if isinstance(metric, Mapping):
             metric = {
                 f"{self.prefix}{key}": value * self.multiplier
                 for key, value in metric.items()
@@ -187,7 +187,7 @@ class ILoaderMetricCallback(IMetricCallback):
         input = self._get_input(runner.input, self.input_key)
 
         for data, storage in zip((input, output), (self.input, self.output)):
-            if isinstance(data, dict):
+            if isinstance(data, Mapping):
                 for key, value in data.items():
                     storage[key].append(value.detach().cpu().numpy())
             else:
@@ -333,7 +333,7 @@ class MetricAggregationCallback(Callback):
                     "None or list or str (not dict)"
                 )
         elif mode in ("weighted_sum", "weighted_mean"):
-            if metrics is None or not isinstance(metrics, dict):
+            if metrics is None or not isinstance(metrics, Mapping):
                 raise ValueError(
                     "For `weighted_sum` or `weighted_mean` mode "
                     "the metrics must be specified "
