@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, List, TYPE_CHECKING, Union
 from abc import ABC, abstractmethod
-from collections import defaultdict, Mapping
+from collections import defaultdict, Mapping, Iterable
 import logging
 
 import numpy as np
@@ -327,7 +327,7 @@ class MetricAggregationCallback(Callback):
             raise ValueError("prefix must be str")
 
         if mode in ("sum", "mean", "gmean"):
-            if metrics is not None and not isinstance(metrics, list):
+            if metrics is not None and not isinstance(metrics, Iterable):
                 raise ValueError(
                     "For `sum` or `mean` mode the metrics must be "
                     "None or list or str (not dict)"
