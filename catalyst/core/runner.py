@@ -846,9 +846,22 @@ class IRunner(ABC, IRunnerLegacy, FrozenClass):
             self.is_infer_loader = loader_name.startswith(
                 SETTINGS.loader_infer_prefix
             )
+
             maybe_recursive_call(
                 self.model, "train", mode=self.is_train_loader,
             )
+
+            if isinstance(self.criterion, Mapping):
+                for _, criterion in self.criterion.items():
+                    maybe_recursive_call(
+                        criterion, "train", mode=self.is_train_loader,
+                    )
+            elif isinstance(self.criterion, nn.Module):
+                maybe_recursive_call(
+                    self.criterion, "train", mode=self.is_train_loader,
+                )
+            else:
+                raise ValueError()
 
             if (
                 isinstance(loader.sampler, DistributedSampler)
