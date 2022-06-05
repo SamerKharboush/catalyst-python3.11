@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Mapping, Tuple, Union
+from typing import Any, Callable, List, Mapping, Tuple, Union, Iterable
 import logging
 
 import torch
@@ -62,7 +62,7 @@ class SupervisedRunner(Runner):
         if isinstance(self.input_key, str):
             # when model expects value
             self._process_input = self._process_input_str
-        elif isinstance(self.input_key, (list, tuple)):
+        elif isinstance(self.input_key, Iterable):
             # when model expects tuple
             self._process_input = self._process_input_list
         elif self.input_key is None:
@@ -74,7 +74,7 @@ class SupervisedRunner(Runner):
         if isinstance(output_key, str):
             # when model returns value
             self._process_output = self._process_output_str
-        elif isinstance(output_key, (list, tuple)):
+        elif isinstance(output_key, Iterable):
             # when model returns tuple
             self._process_output = self._process_output_list
         elif self.output_key is None:
@@ -94,9 +94,14 @@ class SupervisedRunner(Runner):
         output = self.model(batch[self.input_key], **kwargs)
         return output
 
-    def _process_input_list(self, batch: Mapping[str, Any], **kwargs):
+    def _process_input_dict(self, batch: Mapping[str, Any], **kwargs):
         input = {key: batch[key] for key in self.input_key}  # noqa: WPS125
-        output = self.model(**input, **kwargs)
+        output = self.model(*input, **kwargs)
+        return output
+
+    def _process_input_list(self, batch: Mapping[str, Any], **kwargs):
+        input = [batch[key] for key in self.input_key]  # noqa: WPS125
+        output = self.model(*input, **kwargs)
         return output
 
     def _process_input_none(self, batch: Mapping[str, Any], **kwargs):
