@@ -97,10 +97,10 @@ class IMetricCallback(ABC, Callback):
             computed metric
         """
         # Dict merging allows to access keys from outputs and inputs interchangably
-        output = self._get_output({**input, **output}, self.output_key)
-        input = self._get_input({**output, **input}, self.input_key)
+        metric_output = self._get_output({**input, **output}, self.output_key)
+        metric_input = self._get_input({**output, **input}, self.input_key)
 
-        metric = self.metric_fn(output, input, **self.metrics_kwargs)
+        metric = self.metric_fn(metric_output, metric_input, **self.metrics_kwargs)
         return metric
 
     def _compute_metric_key_value(self, output: Dict, input: Dict):
