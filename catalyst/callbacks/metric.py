@@ -96,8 +96,9 @@ class IMetricCallback(ABC, Callback):
         Returns:
             computed metric
         """
-        output = self._get_output(output, self.output_key)
-        input = self._get_input(input, self.input_key)
+        # Dict merging allows to access keys from outputs and inputs interchangably
+        output = self._get_output({**input, **output}, self.output_key)
+        input = self._get_input({**output, **input}, self.input_key)
 
         metric = self.metric_fn(output, input, **self.metrics_kwargs)
         return metric

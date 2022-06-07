@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Union, Iterable
+from typing import Any, Callable, Dict, List, Optional, Union, Iterable, Mapping
 import collections
 import copy
 
@@ -99,10 +99,10 @@ def get_dictkey_auto_fn(key: Optional[Union[str, List[str]]]) -> Callable:
             return get_key_all
         else:
             return get_key_str
+    elif isinstance(key, Mapping):
+        return get_key_dict
     elif isinstance(key, Iterable):
         return get_key_list
-    elif isinstance(key, dict):
-        return get_key_dict
     elif key is None:
         return get_key_none
     else:
