@@ -135,19 +135,6 @@ def any2device(value, device: Device):
         return [any2device(v, device) for v in value]
     elif torch.is_tensor(value):
         return value.to(device, non_blocking=True)
-    elif (
-        isinstance(value, (np.ndarray, np.void))
-        and value.dtype.fields is not None
-    ):
-        return {
-            k: any2device(value[k], device) for k in value.dtype.fields.keys()
-        }
-    elif (
-        isinstance(value, np.ndarray)
-        and value.dtype.kind not in {'O', 'M', 'U', 'S'}
-    ):
-        # Prevent converting object, string, time to tensor
-        return torch.Tensor(value).to(device)
     return value
 
 
