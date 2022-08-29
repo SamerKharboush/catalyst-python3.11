@@ -38,7 +38,7 @@ class Runner(IStageBasedRunner):
         self,
         *,
         model: Model,
-        criterion: Criterion = None,
+        criterion: Union[Criterion, Mapping[str, Criterion]] = None,
         optimizer: Optimizer = None,
         scheduler: Scheduler = None,
         datasets: "OrderedDict[str, Union[Dataset, Dict, Any]]" = None,
@@ -128,17 +128,13 @@ class Runner(IStageBasedRunner):
             load_on_stage_end = None
             if load_best_on_end:
                 load_on_stage_end = "best_full"
-                assert logdir is not None, (
-                    "For ``load_best_on_end`` feature "
-                    "you need to specify ``logdir``"
-                )
+                assert logdir is not None, "For ``load_best_on_end`` feature " "you need to specify ``logdir``"
             callbacks = sort_callbacks_by_order(callbacks)
-            checkpoint_callback_flag = any(
-                isinstance(x, CheckpointCallback) for x in callbacks.values()
-            )
+            checkpoint_callback_flag = any(isinstance(x, CheckpointCallback) for x in callbacks.values())
             if not checkpoint_callback_flag:
                 callbacks["_loader"] = CheckpointCallback(
-                    resume=resume, load_on_stage_end=load_on_stage_end,
+                    resume=resume,
+                    load_on_stage_end=load_on_stage_end,
                 )
             else:
                 raise NotImplementedError("CheckpointCallback already exist")
@@ -227,9 +223,7 @@ class Runner(IStageBasedRunner):
 
         if resume is not None:
             callbacks = sort_callbacks_by_order(callbacks)
-            checkpoint_callback_flag = any(
-                isinstance(x, CheckpointCallback) for x in callbacks.values()
-            )
+            checkpoint_callback_flag = any(isinstance(x, CheckpointCallback) for x in callbacks.values())
             if not checkpoint_callback_flag:
                 callbacks["loader"] = CheckpointCallback(resume=resume)
             else:
@@ -252,9 +246,7 @@ class Runner(IStageBasedRunner):
         self.run_experiment(experiment)
 
     @torch.no_grad()
-    def predict_batch(
-        self, batch: Mapping[str, Any], **kwargs
-    ) -> Mapping[str, Any]:
+    def predict_batch(self, batch: Mapping[str, Any], **kwargs) -> Mapping[str, Any]:
         """
         Run model inference on specified data batch.
 
@@ -270,9 +262,7 @@ class Runner(IStageBasedRunner):
         Raises:
             NotImplementedError: if not implemented yet
         """
-        raise NotImplementedError(
-            "Please implement `runner.predict_batch` method"
-        )
+        raise NotImplementedError("Please implement `runner.predict_batch` method")
 
     @torch.no_grad()
     def predict_loader(
@@ -315,7 +305,9 @@ class Runner(IStageBasedRunner):
         self.experiment = None
         set_global_seed(initial_seed)
         (model, _, _, _, device) = process_components(  # noqa: WPS122
-            model=self.model, distributed_params=fp16, device=self.device,
+            model=self.model,
+            distributed_params=fp16,
+            device=self.device,
         )
         self._prepare_inner_state(
             stage="infer",
@@ -371,9 +363,7 @@ class Runner(IStageBasedRunner):
         """
         if batch is None:
             if loader is None:
-                raise ValueError(
-                    "If batch is not provided the loader must be specified"
-                )
+                raise ValueError("If batch is not provided the loader must be specified")
             batch = next(iter(loader))
 
         if model is not None:
