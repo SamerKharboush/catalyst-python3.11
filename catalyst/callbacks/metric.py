@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, List, TYPE_CHECKING, Union
 from abc import ABC, abstractmethod
-from collections import defaultdict, Mapping, Iterable
+from collections import defaultdict
+from collections.abc import Mapping
 import logging
 
 import numpy as np
@@ -96,11 +97,10 @@ class IMetricCallback(ABC, Callback):
         Returns:
             computed metric
         """
-        # Dict merging allows to access keys from outputs and inputs interchangably
-        metric_output = self._get_output({**input, **output}, self.output_key)
-        metric_input = self._get_input({**output, **input}, self.input_key)
+        output = self._get_output(output, self.output_key)
+        input = self._get_input(input, self.input_key)
 
-        metric = self.metric_fn(metric_output, metric_input, **self.metrics_kwargs)
+        metric = self.metric_fn(output, input, **self.metrics_kwargs)
         return metric
 
     def _compute_metric_key_value(self, output: Dict, input: Dict):
@@ -328,7 +328,7 @@ class MetricAggregationCallback(Callback):
             raise ValueError("prefix must be str")
 
         if mode in ("sum", "mean", "gmean"):
-            if metrics is not None and not isinstance(metrics, Iterable):
+            if metrics is not None and not isinstance(metrics, list):
                 raise ValueError(
                     "For `sum` or `mean` mode the metrics must be "
                     "None or list or str (not dict)"
